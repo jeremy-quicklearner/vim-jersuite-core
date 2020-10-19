@@ -72,7 +72,7 @@ manager (https://github.com/junegunn/vim-plug).
 
     vim-jersuite-core includes a logging system for Jersuite plugins to use.
 Each log statement has a level and a facility, which vim-jersuite-core uses
-to decide whether to log the message ro a buffer, print it to the Vim
+to decide whether to log the message to a buffer, print it to the Vim
 messages, or discard it.
 
                                             *JerLog* *JerLogClear* *jersuite-buflog*
