@@ -108,7 +108,7 @@ jer_log#LogFunctions returns a dict of lambdas that allow for much terser
 logging:
 >
     call jer_log#SetLevel('myfacility', 'INF', 'WRN')
-    let s:Log = jer_log#LogFunctions('mymyfacility')
+    let s:Log = jer_log#LogFunctions('myfacility')
     
     call s:Log.INF('Here is some information')
     call s:Log.DBG('The value of myvar is ', myvar)
