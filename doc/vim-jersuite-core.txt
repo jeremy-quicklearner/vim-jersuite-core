@@ -1,0 +1,269 @@
+doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2020 October 18
+
+Author:               Jeremy Lerner<github.com/jeremy-quicklearner>
+License:              MIT
+Homepage:             https://github.com/jeremy-quicklearner/vim-jersuite-core
+
+==============================================================================
+
+CONTENTS                                                *jersuite-core-contents*
+                                                                 *jersuite-core*
+
+    1. Intro ............................................. |jersuite-core-intro|
+    2. Versioning for Jersuite Plugins ................... |jersuite-version|
+    3. Jersuite Core Facilities .......................... |jersuite-facilities|
+        3.1. Logging ..................................... |jersuite-log|
+        3.2. CursorHold Callbacks ........................ |jersuite-cursorhold|
+        3.3. Mode Detection .............................. |jersuite-mode|
+        3.4. Legacy Winids ............................... |jersuite-win|
+        3.5. Utilities ................................... |jersuite-util|
+
+==============================================================================
+
+1. Intro                                                   *jersuite-core-intro*
+
+    'Jersuite' is the name of a set of Vim plugins which I've hopefully
+written by the time you're reading this. Those plugins require some common
+infrastructure to interact with each other correctly, and that infrastructure
+is here in the vim-jersuite-core plugin.
+
+    Since vim-jersuite-core will only ever be used directly by other Vimscript
+developers (and I'd consider myself lucky if anyone but me ever uses it),
+its documentation doesn't extend beyond comments in the code and a general
+overview here. There's no centralized API Reference.
+
+==============================================================================
+
+2. Versioning for Jersuite Plugins                            *jersuite-version*
+
+    Vim does not advocate any particular scheme for plugin dependencies, so we
+plugin developers need to come up with our own schemes. Jersuite plugins share
+one such scheme.
+
+   Each Jersuite plugin has a script in it called the root script, which is
+not autoloaded. The root script defines a global variable g:<PLUGIN>_verion
+where <PLUGIN> is some string unique to that plugin.
+
+    A version number of 10000 or greater indicates that the plugin is ready
+for distribution, and not likely to change in ways that break scripts or
+workflows depending on it.
+
+    A version number between 0 and 9999 (inclusive) indicates that the plugin
+is still under development and anything about it may change at any time.
+Negative version numbers are not allowed.
+
+   A Jersuite plugin enforces dependencies by reading the g:<PLUGIN>_version
+of the plugins it depends on, and aborting if it does not see the correct
+versions. This dependency check happens in the root script, BEFORE the
+definition of g:<PLUGIN>_version, so the dependent plugin's root script must
+run after the root scripts of the plugins being depended on.
+
+    As a result, the Vim user is responsible for running the root scripts in
+the correct order. This is reasonably simple to do with the Vim-plug plugin
+manager (https://github.com/junegunn/vim-plug).
+
+==============================================================================
+
+3. Jersuite Core Facilities                                *jersuite-facilities*
+
+------------------------------------------------------------------------------
+
+3.1. Logging                                            *jer_log* *jersuite-log*
+
+    vim-jersuite-core includes a logging system for Jersuite plugins to use.
+Each log statement has a level and a facility, which vim-jersuite-core uses
+to decide whether to log the message ro a buffer, print it to the Vim
+messages, or discard it.
+
+                                            *JerLog* *JerLogClear* *jersuite-buflog*
+    The buffer messages get logged to is named jersuite_buflog. It is
+initialized by vim-jersuite-core as unlisted, and the user may open it in the
+current window by invoking the `JerLog` command. Another command,
+`JerLogClear`, clears the buffer.
+
+There are seven log levels:
+   CRT: With its current configuration, Vim will never function        *log-CRT*
+        correctly ever again unless something is fixed
+   ERR: Something is wrong and it's probably going to cause trouble    *log-ERR*
+        until Vim is restarted
+   WRN: Something is wrong but it probably won't cause any trouble     *log-WRN*
+   CFG: Information about plugin configurations                        *log-CFG*
+   INF: An alert about some change in Vim's state                      *log-INF*
+   DBG: Low-level information that isn't of interest to users          *log-DBG*
+   VRB: Very low-level information that isn't of interest to anyone    *log-VRB*
+        except determined developers
+
+                                                    *JerLogSet* *jer_log#SetLevel*
+    Each facility is assigned two levels - one is the threshold for logging to
+the buffer, and the other is the threshold for printing to the Vim messages.
+The levels for a facility can be set by the user at runtime using the
+`JerLogSet` command, which tab-completes the facility and levels. To create a
+facility and set its levels, plugins should internally call jer_log#SetLevel.
+
+                                              *jer_log#Log* *jer_log#LogFunctions*
+    To log a message, a plugin invokes the jer_log#Log function and passes the
+desired facility and level as strings. This is cumbersome in scripts with lots
+of logging, so vim-jersuite-core provides the jer_log#LogFunctions function.
+jer_log#LogFunctions returns a dict of lambdas that allow for much terser
+logging:
+>
+    call jer_log#SetLevel('myfacility', 'INF', 'WRN')
+    let s:Log = jer_log#LogFunctions('mymyfacility')
+    
+    call s:Log.INF('Here is some information')
+    call s:Log.DBG('The value of myvar is ', myvar)
+    call s:Log.CRT('Oh no, everything is broken!')
+<
+Note that these logging functions are variadic. What gets logged is the result
+of concatenating the arguments with join().
+
+------------------------------------------------------------------------------
+
+3.2. CursorHold Callbacks                          *jer_chc* *jersuite-cursorhold*
+
+    Different plugins may want to add autocmds that trigger on the CursorHold
+event, but ensure that those autocmds run in a certain order. However, Vim's
+behaviour is that when multiple autocmds fire on the same event, those
+autocmds execute in the order in which they were registered. That means the
+plugins don't have control over the order - the Vim user does, by choosing in
+what order to install the plugins (and therefore, in what order to register
+their autocmds).
+
+    This facility allows plugins to decide the order by maintaining a
+'CursorHold Callback' list and calling all the callbacks in it whenever the
+CursorHold event fires. Each callback is registered with a priority value so
+that plugins can control the order in which the callbacks execute. Since only
+one CursorHold autocmd gets registered (the one that runs the callbacks), Vim
+has no say about the ordering.
+
+    CursorHold callbacks are registered by calling the jer_chc#Register
+function:
+
+jer_chc#Register({callback}, {data}, {cascade},             *jer_chc#Register*
+                 {priority}, {permanent},
+                 {inCmdWin}, {global})
+
+    {callback} is the function to run on the CursorHold event, and it must be
+a funcref. {data} is the arguments to pass to {callback}, and it must be a
+list.
+
+    If {cascade} is truthy, autocommands can execute as side effects of the
+callback.  This effect cascades to side effects of those autocommands and so
+on. Callbacks with lower {priority} value go first.
+
+    The callback will only called once, on the next CursorHold event, unless
+{permanent} is true. In that case, {callback} will be called for every
+CursorHold event from now on.
+
+    Callbacks with a falsey {inCmdWin} flag will not run while the
+command-line window is open.
+
+    If {global} is truthy, {callback} will execute even if the user switches
+to another tab before the next CursorHold event. Otherwise, the callback will
+run on the next CursorHold event that triggers in the current tab
+
+    Since the CursorHold autocmd event doesn't fire in active terminal
+windows (i.e. terminal windows that are in terminal-job mode), the CursorHold
+callbacks also run whenever the cursor enters an active terminal window.
+Specifically, the TerminalOpen and WinEnter events are used for this.
+
+------------------------------------------------------------------------------
+
+3.3. Mode Detection                                     *jer_mode* *jersuite-mode*
+
+    Detecting the current mode from Vimscript is a finicky process. Vim
+provides a mode() function, but that function needs to be called while still
+in the mode being detected... and the usual ways of executing Vimscript put
+Vim into normal mode. vim-jersuite-core offers a solution: call mode() during
+the evaluation of expr-mappings. The mappings iit uses are in
+plugin/vim-jersuite-core.vim. Using mappings is somewhat cumbersome because if
+the mapping is invoked from Vimscript with a 'normal "<plug>JerDetectMode"',
+the mapping doesn't have access to the script's scope and so the detected mode
+can't just be stored in a local variable. Instead, vim-jersuite-core uses a
+script-local variable called s:detectedmode to store the mode. That variable
+has a setter called jer_mode#ForcePreserve and a getter
+called jer_mode#Retrieve.
+
+So the intended usage is:
+>
+    normal "<plug>JerDetectMode"
+    let preservedmode = jer_mode#Retrieve()
+
+    " Do things that may mess up the mode
+
+    call jer_mode#ForcePreserve(preservedmode)
+    call jer_mode#Restore()
+<
+Alternatively, if the mode (but not the details) is already known:
+>
+    call jer_mode#Detect('v') " We know we're in visual mode, but we don't
+                              " know where the start and end of the selection
+                              " are
+    let preservedmode = jer_mode#Retrieve()
+
+    " Do things that may mess up the mode
+
+    call jer_mode#ForcePreserve(preservedmode)
+    call jer_mode#Restore()
+<
+A reckless plugin developer may be tempted to skip the setter and getter, and
+rely on global state:
+>
+    normal "<plug>JerDetectMode"
+
+    " Do things that may mess up the mode
+
+    call jer_mode#Restore
+<
+But please do not do this - it is asking for trouble. Some autocmd could fire
+and change the script-local variable at any time.
+
+------------------------------------------------------------------------------
+
+3.4. Legacy Winids                                        *jer_win* *jersuite_win*
+
+    Vim-native winids were only introduced with Vim 8.0. For compatibility
+with earlier versions of Vim, winids need to be reimplemented using
+window-local variables. Not every winid-related function is reimplemented -
+more can be added as they are needed. To use these reimplemented
+'legacy winids', Jersuite plugins can call wrapper functions. These wrappers
+are functionally equivalent to the Vim's native winid-related functions, but
+their implementation depends on whether the native or legacy winids are being
+used.
+
+The reimplemented functions and their wrappers are:
+    win_getid()        jer_win#getid()
+    win_id2win()       jer_win#id2win()
+    win_gotoid()       jer_win#gotoid
+                                                   *g:jersuite_forcelegacywinid*
+    vim-jersuite-core uses legacy winids if the Vim version is older than 8.0,
+or if the g:jersuite_forcelegacywinid flag is set to a truthy value before any
+of the above functions is autoloaded.
+                                                                *jer_win#Legacy*
+   There is also a function jer_win#Legacy that returns 1 if legacy winids are
+in use and 0 otherwise.
+
+------------------------------------------------------------------------------
+
+3.5. Utilities                                          *jer_util* *jersuite-util*
+
+    This facility contains miscellaneous utility functions for Jersuite
+plugins:
+
+                                                                   *JerCheckDep*
+`JerCheckDep` .. A command used to check Jersuite plugin dependencies
+
+                                                                      *JerWindo*
+`JerWindo` ..... Just like windo, but restore the current window when done
+
+                                                                  *JerWindofast*
+`JerWindofast` . Just like Windo, but disable all autocommands for fast
+               processing
+
+                                                                      *JerBufdo*
+`JerBufdo` ..... Just like bufdo, but restore the current buffer when done.
+
+                                                                      *JerTabdo*
+`JerTabdo` ..... Just like tabdo, but restore the current buffer when done.
+
+vim:tw=78:ts=4:ft=help:norl:
