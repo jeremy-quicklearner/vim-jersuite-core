@@ -1,6 +1,6 @@
 doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2020 October 18
 
-Author:               Jeremy Lerner<github.com/jeremy-quicklearner>
+Author:               Jeremy Lerner <github.com/jeremy-quicklearner>
 License:              MIT
 Homepage:             https://github.com/jeremy-quicklearner/vim-jersuite-core
 
