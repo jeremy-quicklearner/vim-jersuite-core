@@ -69,6 +69,10 @@ function! jer_mode#Retrieve()
 endfunction
 function! jer_mode#ForcePreserve(mode)
     call s:Log.DBG('jer_mode#ForcePreserve ', a:mode)
-    let s:detectedmode = a:mode
+    if type(a:mode) != v:t_dict || !has_key(a:mode, 'mode')
+        let s:detectedmode = {'mode':'n'}
+    else
+        let s:detectedmode = a:mode
+    endif
 endfunction
 
