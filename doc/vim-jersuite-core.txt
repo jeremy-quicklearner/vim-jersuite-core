@@ -1,6 +1,6 @@
 doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2020 October 18
 
-Author:               Jeremy Lerner<github.com/jeremy-quicklearner>
+Author:               Jeremy Lerner <github.com/jeremy-quicklearner>
 License:              MIT
 Homepage:             https://github.com/jeremy-quicklearner/vim-jersuite-core
 
@@ -72,7 +72,7 @@ manager (https://github.com/junegunn/vim-plug).
 
     vim-jersuite-core includes a logging system for Jersuite plugins to use.
 Each log statement has a level and a facility, which vim-jersuite-core uses
-to decide whether to log the message ro a buffer, print it to the Vim
+to decide whether to log the message to a buffer, print it to the Vim
 messages, or discard it.
 
                                             *JerLog* *JerLogClear* *jersuite-buflog*
@@ -108,7 +108,7 @@ jer_log#LogFunctions returns a dict of lambdas that allow for much terser
 logging:
 >
     call jer_log#SetLevel('myfacility', 'INF', 'WRN')
-    let s:Log = jer_log#LogFunctions('mymyfacility')
+    let s:Log = jer_log#LogFunctions('myfacility')
     
     call s:Log.INF('Here is some information')
     call s:Log.DBG('The value of myvar is ', myvar)
