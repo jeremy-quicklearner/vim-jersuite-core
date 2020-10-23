@@ -40,7 +40,7 @@ function! jer_util#WinDo(range, command)
     execute currwin . 'wincmd w'
 endfunction
 
-function! BufDo(range, command)
+function! jer_util#BufDo(range, command)
     let currBuff=bufnr("%")
     let range = a:range
     if range ==# 0
@@ -50,7 +50,7 @@ function! BufDo(range, command)
     execute 'buffer ' . currBuff
 endfunction
 
-function! TabDo(range, command)
+function! jer_util#TabDo(range, command)
     let curtabnr = tabpagenr()
     let range = a:range
     if range ==# 0

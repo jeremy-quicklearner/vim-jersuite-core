@@ -3,6 +3,12 @@
 " Author: Jeremy Lerner <github.com/jeremy-quicklearner>
 " License: MIT
 
+" Avoid autoloading twice
+if exists('s:loaded')
+    finish
+endif
+let s:loaded = 0
+
 call jer_log#SetLevel('detect-mode', 'CFG', 'WRN')
 let s:Log = jer_log#LogFunctions('detect-mode')
 
