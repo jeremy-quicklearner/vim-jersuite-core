@@ -24,6 +24,8 @@ function! jer_mode#Detect(mode)
        \    visualmode(),
        \    's'
        \)
+    elseif a:mode ==# 't'
+        let fixedmode = 't'
     endif
     let s:detectedmode = {'mode':fixedmode}
     if index(['v', 'V', "\<c-v>", 's', 'S', "\<c-s>"], fixedmode) >=# 0
