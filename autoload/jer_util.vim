@@ -10,21 +10,35 @@ endif
 let s:loaded = 0
 
 " Function used by JerCheckDep
-function! jer_util#JerCheckDep(name, depname, depwhere, depvermin, depvermax)
-    if !exists('g:' . a:name . '_version')
+function! jer_util#CheckDep(name, depname, depwhere, depminver, depmaxver)
+    if !exists('g:' . a:depname . '_version')
         echom 'Jersuite plugin ' . a:name .
        \      ' requires ' . a:depname . ' (' . a:depwhere . ')' .
        \      ' to be installed before it'
         return 0
-    else
-        let depver = eval('g:' . a:name . '_version')
-        if depver <# a:depvermin || depver ># a:depvermax
-            echom 'Jersuite plugin ' . a:name . 
-                  ' requires ' . a:depname .
-                  ' version between ' . a:depvermin . ' and ' . a:depvermax .
-                    ' but installed version is ' . depver
-            return 0
+    endif
+    let actverstr = eval('g:' . a:depname . '_version')
+    let actver = split(actverstr, '\.')
+    let minver = split(a:depminver,  '\.')
+    let maxver = split(a:depmaxver, '\.')
+    let maxok = 0
+    let ok = 1
+    for idx in range(3)
+        if !maxok && actver[idx] < maxver[idx]
+            let maxok = 1
         endif
+        if actver[idx] <# minver[idx] || (!maxok && actver[idx] >=# maxver[idx])
+            let ok = 0
+            break
+        endif
+    endfor
+    if !ok
+        echom 'Jersuite plugin ' . a:name . 
+       \      ' requires ' . a:depname .
+       \      ' version between ' . a:depminver .
+       \      ' (inclusive) and ' . a:depmaxver .
+       \      ' (exclusive) but installed version is ' . actverstr
+        return 0
     endif
     return 1
 endfunction

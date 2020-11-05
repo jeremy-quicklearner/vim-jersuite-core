@@ -12,7 +12,7 @@ let s:loaded = 0
 call jer_log#SetLevel('legacy-winid', 'CFG', 'WRN')
 let s:Log = jer_log#LogFunctions('legacy-winid')
 
-" If this flag is switched on, jer_winid will use its backwards-compatible
+" If this flag is switched on, jer_win will use its backwards-compatible
 " winid implementation even if the Vim version has native winids
 if !exists('g:jersuite_forcelegacywinid')
     let g:jersuite_forcelegacywinid = 0
@@ -35,6 +35,7 @@ if v:version >=# 800 && (!exists('g:jersuite_forcelegacywinid') ||
     function! jer_win#gotoid(winid)
         call win_gotoid(a:winid)
     endfunction
+
 else
     function! jer_win#Legacy()
         return 1

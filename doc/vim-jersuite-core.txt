@@ -1,4 +1,4 @@
-doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2020 October 18
+doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2020 November 4
 
 Author:               Jeremy Lerner <github.com/jeremy-quicklearner>
 License:              MIT
@@ -6,7 +6,7 @@ Homepage:             https://github.com/jeremy-quicklearner/vim-jersuite-core
 
 ==============================================================================
 
-CONTENTS                                                *jersuite-core-contents*
+0. Contents                                             *jersuite-core-contents*
                                                                  *jersuite-core*
 
     1. Intro ............................................. |jersuite-core-intro|
@@ -17,10 +17,13 @@ CONTENTS                                                *jersuite-core-contents*
         3.3. Mode Detection .............................. |jersuite-mode|
         3.4. Legacy Winids ............................... |jersuite-win|
         3.5. Utilities ................................... |jersuite-util|
+    4. Bugs .............................................. |jersuite-bugs|
+    5. Changelog ......................................... |jersuite-changelog|
+    6. License ........................................... |jersuite-license|
 
 ==============================================================================
 
-1. Intro                                                   *jersuite-core-intro*
+1. Intro                                          *jersuite* *jersuite-core-intro*
 
     'Jersuite' is the name of a set of Vim plugins which I've hopefully
 written by the time you're reading this. Those plugins require some common
@@ -40,17 +43,34 @@ overview here. There's no centralized API Reference.
 plugin developers need to come up with our own schemes. Jersuite plugins share
 one such scheme.
 
-   Each Jersuite plugin has a script in it called the root script, which is
+    Each Jersuite plugin has a script in it called the root script, which is
 not autoloaded. The root script defines a global variable g:<PLUGIN>_verion
 where <PLUGIN> is some string unique to that plugin.
 
-    A version number of 10000 or greater indicates that the plugin is ready
-for distribution, and not likely to change in ways that break scripts or
-workflows depending on it.
+The value of g:<PLUGIN>_version is a string of the form
 
-    A version number between 0 and 9999 (inclusive) indicates that the plugin
-is still under development and anything about it may change at any time.
-Negative version numbers are not allowed.
+       <major>.<minor>.<patch>
+
+where <major>, <minor>, and <patch> are non-negative whole numbers. As changes
+are introduced to the plugin, these values are incremented. A value resets to
+0 when the value to its left changes. For example, a change of 1.1.1 -> 1.2.0
+is possible, but a change of 1.1.1 -> 1.2.1 is not allowed.
+
+    A <major> value of 0 indicates that the plugin is is still under
+development and anything about it may change at any time.
+
+    A <major> value of 1 or greater indicates that the plugin is ready for
+distribution. An incremented <major> value indicates the presence of large
+changes that will likely break use cases of the plugin, in ways that may
+require significant work to fix
+
+    An incremented <minor> value indicates a change that adds new features or
+may break use cases of the plugin, in a way that should be relatively simple
+to fix
+
+    An incremented <patch> value indicates some small change that should have
+no noticeable negative impact or large positive impact on a reasonable use
+case of the plugin
 
    A Jersuite plugin enforces dependencies by reading the g:<PLUGIN>_version
 of the plugins it depends on, and aborting if it does not see the correct
@@ -61,6 +81,24 @@ run after the root scripts of the plugins being depended on.
     As a result, the Vim user is responsible for running the root scripts in
 the correct order. This is reasonably simple to do with the Vim-plug plugin
 manager (https://github.com/junegunn/vim-plug).
+
+                                                                   *JerCheckDep*
+    For Jersuite plugin developers, vim-jersuite-core provides the `JerCheckDep`
+command:
+
+    `JerCheckDep` <name> <depname> <depwhere> <depminver> <depmaxver>
+
+This command should be invoked from the root script, right before the
+initialization of g:<PLUGIN>_version. The arguments are:
+
+    <name>:      The <PLUGIN> string of the current plugin
+    <depname>:   The <PLUGIN> string of the plugin being depended on
+    <depwhere>:  Some string describing a location where the plugin being
+                 depended on can be found
+    <depminver>: Mimimum (inclusive) version of the plugin being depended
+                 on (in <major>.<minor>.<patch> format) 
+    <depvermax>: Maximum (exclusive) version of the plugin being depended
+                 on (in <major>.<minor>.<patch> format)
 
 ==============================================================================
 
@@ -139,7 +177,7 @@ has no say about the ordering.
     CursorHold callbacks are registered by calling the jer_chc#Register
 function:
 
-jer_chc#Register({callback}, {data}, {cascade},             *jer_chc#Register*
+jer_chc#Register({callback}, {data}, {cascade},               *jer_chc#Register*
                  {priority}, {permanent},
                  {inCmdWin}, {global})
 
@@ -250,9 +288,6 @@ in use and 0 otherwise.
     This facility contains miscellaneous utility functions for Jersuite
 plugins:
 
-                                                                   *JerCheckDep*
-`JerCheckDep` .. A command used to check Jersuite plugin dependencies
-
                                                                       *JerWindo*
 `JerWindo` ..... Just like windo, but restore the current window when done
 
@@ -265,5 +300,27 @@ plugins:
 
                                                                       *JerTabdo*
 `JerTabdo` ..... Just like tabdo, but restore the current buffer when done.
+
+==============================================================================
+
+4. Bugs                                                          *jersuite-bugs*
+
+Post any bug reports or feature requests at:
+
+    https://github.com/jeremy-quicklearner/vim-jersuite-core/issues
+
+==============================================================================
+
+5. Changelog                                                *jersuite-changelog*
+
+vim-jersuite-core's commit history may be found at:
+
+    https://github.com/jeremy-quicklearner/vim-jersuite-core/commits/main
+
+==============================================================================
+
+6. License                                                    *jersuite-license*
+
+MIT
 
 vim:tw=78:ts=4:ft=help:norl:

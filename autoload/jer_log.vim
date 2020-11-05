@@ -112,7 +112,7 @@ function! jer_log#SetLevel(facility, bufloglevel, msgloglevel)
    \    'msg':msgloglevel
    \}
     call add(s:buflog_queue,
-        \    '[CNF][log] Loglevels for ' .
+        \    '[CFG][log] Loglevels for ' .
         \    a:facility .
         \    ' facility set to ' .
         \    s:loglevel_data[bufloglevel].code .

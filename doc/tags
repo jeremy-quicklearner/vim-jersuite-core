@@ -17,12 +17,16 @@ jer_mode	vim-jersuite-core.txt	/*jer_mode*
 jer_util	vim-jersuite-core.txt	/*jer_util*
 jer_win	vim-jersuite-core.txt	/*jer_win*
 jer_win#Legacy	vim-jersuite-core.txt	/*jer_win#Legacy*
+jersuite	vim-jersuite-core.txt	/*jersuite*
 jersuite-buflog	vim-jersuite-core.txt	/*jersuite-buflog*
+jersuite-bugs	vim-jersuite-core.txt	/*jersuite-bugs*
+jersuite-changelog	vim-jersuite-core.txt	/*jersuite-changelog*
 jersuite-core	vim-jersuite-core.txt	/*jersuite-core*
 jersuite-core-contents	vim-jersuite-core.txt	/*jersuite-core-contents*
 jersuite-core-intro	vim-jersuite-core.txt	/*jersuite-core-intro*
 jersuite-cursorhold	vim-jersuite-core.txt	/*jersuite-cursorhold*
 jersuite-facilities	vim-jersuite-core.txt	/*jersuite-facilities*
+jersuite-license	vim-jersuite-core.txt	/*jersuite-license*
 jersuite-log	vim-jersuite-core.txt	/*jersuite-log*
 jersuite-mode	vim-jersuite-core.txt	/*jersuite-mode*
 jersuite-util	vim-jersuite-core.txt	/*jersuite-util*

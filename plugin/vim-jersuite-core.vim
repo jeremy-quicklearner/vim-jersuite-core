@@ -10,12 +10,12 @@ endif
 let s:loaded = 0
 
 " vim-jersuite-core itself has no dependencies
-let g:jersuite_core_version = 10003
+let g:jersuite_core_version = '1.1.0'
 
 " Command that generically checks a plugin dependency and aborts with an error
 " message if it's not installed or its version is outside a range. This is a
 " command instead of a function 
-command! -nargs=+ JerCheckDep if !JerCheckDep(<f-args>) | exit | endif
+command! -nargs=+ JerCheckDep if !jer_util#CheckDep(<f-args>) | exit | endif
 
 " Command to open the buflog
 command! -nargs=0 -complete=command JerLog buffer jersuite_buflog
