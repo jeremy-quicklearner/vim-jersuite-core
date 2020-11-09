@@ -258,25 +258,32 @@ and change the script-local variable at any time.
 
 ------------------------------------------------------------------------------
 
-3.4. Legacy Winids                                        *jer_win* *jersuite_win*
+3.4. Legacy Winids                                        *jer_win* *jersuite-win*
 
-    Vim-native winids were only introduced with Vim 8.0. For compatibility
-with earlier versions of Vim, winids need to be reimplemented using
-window-local variables. Not every winid-related function is reimplemented -
-more can be added as they are needed. To use these reimplemented
-'legacy winids', Jersuite plugins can call wrapper functions. These wrappers
-are functionally equivalent to the Vim's native winid-related functions, but
-their implementation depends on whether the native or legacy winids are being
-used.
+    Vim-native winids were only introduced with Vim 8.0. Jersuite plugins
+aiming for compatibility with earlier versions of Vim will benefit from
+vim-jersuite-core's reimplementation of winids, which does not rely on the
+Vim 8.0 feature. Not every winid-related function is reimplemented - more can
+be added as they are needed. 
 
-The reimplemented functions and their wrappers are:
-    win_getid()        jer_win#getid()
-    win_id2win()       jer_win#id2win()
-    win_gotoid()       jer_win#gotoid
+    To use these reimplemented 'legacy winids', scripts may call
+jer_win#WinFunctions() to retrieve a dictionary containing replacements for
+some of Vim's winid-related functions:
+>
+    let s:win = jer_win#WinFunctions()
+    let id = s:win.getid()
+    let nr = s:win.id2win(id)
+    call s:win.gotoid(id)
+<
+    If legacy winids are being used, this dictionary is populated with
+functions that reimplement winids in Vimscript. Otherwise, the dictionary
+entries just point to their respective native functions.
+
                                                    *g:jersuite_forcelegacywinid*
     vim-jersuite-core uses legacy winids if the Vim version is older than 8.0,
-or if the g:jersuite_forcelegacywinid flag is set to a truthy value before any
-of the above functions is autoloaded.
+or if the g:jersuite_forcelegacywinid flag is set to a truthy value before
+jer_win#WinFunctions() is autoloaded.
+
                                                                 *jer_win#Legacy*
    There is also a function jer_win#Legacy that returns 1 if legacy winids are
 in use and 0 otherwise.

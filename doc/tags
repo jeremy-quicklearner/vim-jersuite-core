@@ -31,7 +31,7 @@ jersuite-log	vim-jersuite-core.txt	/*jersuite-log*
 jersuite-mode	vim-jersuite-core.txt	/*jersuite-mode*
 jersuite-util	vim-jersuite-core.txt	/*jersuite-util*
 jersuite-version	vim-jersuite-core.txt	/*jersuite-version*
-jersuite_win	vim-jersuite-core.txt	/*jersuite_win*
+jersuite-win	vim-jersuite-core.txt	/*jersuite-win*
 log-CFG	vim-jersuite-core.txt	/*log-CFG*
 log-CRT	vim-jersuite-core.txt	/*log-CRT*
 log-DBG	vim-jersuite-core.txt	/*log-DBG*
