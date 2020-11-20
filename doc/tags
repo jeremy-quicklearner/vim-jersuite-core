@@ -16,7 +16,7 @@ jer_log#SetLevel	vim-jersuite-core.txt	/*jer_log#SetLevel*
 jer_mode	vim-jersuite-core.txt	/*jer_mode*
 jer_util	vim-jersuite-core.txt	/*jer_util*
 jer_win	vim-jersuite-core.txt	/*jer_win*
-jer_win#Legacy	vim-jersuite-core.txt	/*jer_win#Legacy*
+jer_win#WinFunctions	vim-jersuite-core.txt	/*jer_win#WinFunctions*
 jersuite	vim-jersuite-core.txt	/*jersuite*
 jersuite-buflog	vim-jersuite-core.txt	/*jersuite-buflog*
 jersuite-bugs	vim-jersuite-core.txt	/*jersuite-bugs*

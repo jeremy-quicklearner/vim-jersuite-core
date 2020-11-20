@@ -266,6 +266,7 @@ vim-jersuite-core's reimplementation of winids, which does not rely on the
 Vim 8.0 feature. Not every winid-related function is reimplemented - more can
 be added as they are needed. 
 
+                                                            *jer_win#WinFunctions*
     To use these reimplemented 'legacy winids', scripts may call
 jer_win#WinFunctions() to retrieve a dictionary containing replacements for
 some of Vim's winid-related functions:
@@ -277,16 +278,13 @@ some of Vim's winid-related functions:
 <
     If legacy winids are being used, this dictionary is populated with
 functions that reimplement winids in Vimscript. Otherwise, the dictionary
-entries just point to their respective native functions.
+entries just point to their respective native functions. There is also a
+'legacy' flag that is 1 if legacy winids are being used, and 0 otherwise
 
                                                    *g:jersuite_forcelegacywinid*
     vim-jersuite-core uses legacy winids if the Vim version is older than 8.0,
 or if the g:jersuite_forcelegacywinid flag is set to a truthy value before
 jer_win#WinFunctions() is autoloaded.
-
-                                                                *jer_win#Legacy*
-   There is also a function jer_win#Legacy that returns 1 if legacy winids are
-in use and 0 otherwise.
 
 ------------------------------------------------------------------------------
 

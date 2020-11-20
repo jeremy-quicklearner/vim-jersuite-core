@@ -102,29 +102,73 @@ function! jer_win#gotoid(winid)
     execute winnr . 'wincmd w'
 endfunction
 
+function! s:Id2winInternal(winid)
+    if a:winid ==# 0
+        return 0
+    elseif a:winid <# 1000 || a:winid ># s:maxwinid
+        return a:winid
+    endif
+    for winnr in range(1, winnr('$'))
+        if getwinvar(winnr, 'jersuite_winid', 999) ==# a:winid
+            return winnr
+        endif
+    endfor
+    return 0
+endfunction
+    
+function! jer_win#bufnr(winid)
+    return winbufnr(s:Id2WinInternal(a:winid))
+endfunction
+
+function! jer_win#width(winid)
+    return winwidth(s:Id2WinInternal(a:winid))
+endfunction
+
+function! jer_win#height(winid)
+    return winheight(s:Id2WinInternal(a:winid))
+endfunction
+
+function! jer_win#getwinvar(winid, ...)
+    return call('getwinvar', [s:Id2WinInternal(a:winid)] + a:000[1:])
+endfunction
+
+function! jer_win#setwinvar(winid, varname, val)
+    return setwinvar(s:Id2WinInternal(a:winid), a:varname, a:val)
+endfunction
+
+function! jer_win#setloclist(winid, list, ...)
+    return call('setloclist', s:Id2WinInternal(a:winid), a:list, a:000[2:])
+endfunction
+
 if v:version >=# 800 && (!exists('g:jersuite_forcelegacywinid') ||
                        \ !g:jersuite_forcelegacywinid)
     call s:Log.CFG('Legacy winids disabled')
-    function! jer_win#Legacy()
-        return 0
-    endfunction
-
     let s:funcrefs = {
+   \    'legacy': 0,
    \    'getid': function('win_getid'),
    \    'id2win': function('win_id2win'),
-   \    'gotoid': function('win_gotoid')
+   \    'gotoid': function('win_gotoid'),
+   \    'bufnr': function('winbufnr'),
+   \    'width': function('winwidth'),
+   \    'height': function('winheight'),
+   \    'getwinvar': function('getwinvar'),
+   \    'setwinvar': function('setwinvar'),
+   \    'setloclist': function('setloclist')
    \}
 
 else
     call s:Log.CFG('Legacy winids enabled')
-    function! jer_win#Legacy()
-        return 1
-    endfunction
-
     let s:funcrefs = {
+   \    'legacy': 1,
    \    'getid': function('jer_win#getid'),
    \    'id2win': function('jer_win#id2win'),
-   \    'gotoid': function('jer_win#gotoid')
+   \    'gotoid': function('jer_win#gotoid'),
+   \    'bufnr': function('jer_win#bufnr'),
+   \    'width': function('jer_win#width'),
+   \    'height': function('jer_win#height'),
+   \    'getwinvar': function('jer_win#setwinvar'),
+   \    'setwinvar': function('jer_win#setwinvar'),
+   \    'setloclist': function('jer_win#setloclist')
    \}
 
 endif
