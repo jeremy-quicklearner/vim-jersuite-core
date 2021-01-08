@@ -106,7 +106,7 @@ initialization of g:<PLUGIN>_version. The arguments are:
 
 ------------------------------------------------------------------------------
 
-3.1. Logging                                            *jer_log* *jersuite-log*
+3.1. Logging                                              *jer_log* *jersuite-log*
 
     vim-jersuite-core includes a logging system for Jersuite plugins to use.
 Each log statement has a level and a facility, which vim-jersuite-core uses

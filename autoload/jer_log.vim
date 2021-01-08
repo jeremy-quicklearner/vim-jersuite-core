@@ -30,6 +30,7 @@ function! s:MaybeStartBuflog()
     call setbufvar(s:buflog, '&filetype', 'buflog')
     call setbufvar(s:buflog, '&bufhidden', 'hide')
     call setbufvar(s:buflog, '&buflisted', 1)
+    call setbufvar(s:buflog, '&undolevels', -1)
     
     " Add one line to the buffer so that we can check it exists by reading
     " s:buflog_lines
