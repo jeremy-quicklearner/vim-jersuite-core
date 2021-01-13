@@ -267,7 +267,9 @@ augroup PostEventCallbacks
     autocmd CmdWinEnter * let s:inCmdWin = 1
     autocmd CmdWinLeave * let s:inCmdWin = 0
 
-    autocmd SafeState * nested call s:OnSafeState()
+    if exists('##SafeState')
+        autocmd SafeState * nested call s:OnSafeState()
+    endif
     autocmd CursorHold * nested call s:OnCursorHold()
 
     " The Post-Event autocmd doesn't run in active terminal windows, so
