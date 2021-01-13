@@ -21,17 +21,32 @@ function! jer_util#CheckDep(name, depname, depwhere, depminver, depmaxver)
     let actver = split(actverstr, '\.')
     let minver = split(a:depminver,  '\.')
     let maxver = split(a:depmaxver, '\.')
+    let minok = 0
     let maxok = 0
     let ok = 1
+
     for idx in range(3)
-        if !maxok && actver[idx] < maxver[idx]
+        if !maxok && actver[idx] <# maxver[idx]
             let maxok = 1
         endif
-        if actver[idx] <# minver[idx] || (!maxok && actver[idx] >=# maxver[idx])
+        if !minok && actver[idx] ># minver[idx]
+            let minok = 1
+        endif
+
+        if minok && maxok
+            break
+        endif
+
+        if !minok && actver[idx] <# minver[idx]
+            let ok = 0
+            break
+        endif
+        if !maxok && actver[idx] >=# maxver[idx]
             let ok = 0
             break
         endif
     endfor
+
     if !ok
         echom 'Jersuite plugin ' . a:name . 
        \      ' requires ' . a:depname .

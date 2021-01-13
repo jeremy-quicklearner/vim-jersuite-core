@@ -1,4 +1,4 @@
-doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2020 November 4
+doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2021 January 12
 
 Author:               Jeremy Lerner <github.com/jeremy-quicklearner>
 License:              MIT
@@ -13,7 +13,7 @@ Homepage:             https://github.com/jeremy-quicklearner/vim-jersuite-core
     2. Versioning for Jersuite Plugins ................... |jersuite-version|
     3. Jersuite Core Facilities .......................... |jersuite-facilities|
         3.1. Logging ..................................... |jersuite-log|
-        3.2. CursorHold Callbacks ........................ |jersuite-cursorhold|
+        3.2. Post-Event Callbacks ........................ |jersuite-postevent|
         3.3. Mode Detection .............................. |jersuite-mode|
         3.4. Legacy Winids ............................... |jersuite-win|
         3.5. Utilities ................................... |jersuite-util|
@@ -157,9 +157,18 @@ of concatenating the arguments with join().
 
 ------------------------------------------------------------------------------
 
-3.2. CursorHold Callbacks                          *jer_chc* *jersuite-cursorhold*
+3.2. Post-Event Callbacks                           *jer_pec* *jersuite-postevent*
 
-    Different plugins may want to add autocmds that trigger on the CursorHold
+    A common requirement in Jersuite plugins is that some action needs to be
+performed after the Vim event loop runs out of events to process. The
+SafeState autocmd (added in Vim 8.2) deftly fills this need, but Jersuite
+plugins need to be backwards-compatible with Vim versions older than 8.2. For
+those versions, the CursorHold autocmd event is the next best thing. For the
+rest of this section, The terms "Post-event autocmd event" and "Post-event
+event " will be used to refer to the relevant autocmd event - SafeState for
+Vim 8.2+, CursorHold for earlier versions.
+
+    Different plugins may want to add autocmds that trigger on the Post-Event
 event, but ensure that those autocmds run in a certain order. However, Vim's
 behaviour is that when multiple autocmds fire on the same event, those
 autocmds execute in the order in which they were registered. That means the
@@ -167,21 +176,22 @@ plugins don't have control over the order - the Vim user does, by choosing in
 what order to install the plugins (and therefore, in what order to register
 their autocmds).
 
-    This facility allows plugins to decide the order by maintaining a
-'CursorHold Callback' list and calling all the callbacks in it whenever the
-CursorHold event fires. Each callback is registered with a priority value so
-that plugins can control the order in which the callbacks execute. Since only
-one CursorHold autocmd gets registered (the one that runs the callbacks), Vim
-has no say about the ordering.
+    The Post-Event Callback facility of vim-jersuite-core allows plugins to
+decide the order by maintaining a 'Post-Event Callback' list and calling all
+the callbacks in it whenever the Post-Event autocmd event fires. Each callback
+is registered with a priority value so that plugins can control the order in
+which the callbacks execute. Since only one autocmd (the one that runs the
+callbacks) gets registered for this autocmd event, Vim has no say about the
+ordering.
 
-    CursorHold callbacks are registered by calling the jer_chc#Register
+    Post-Event callbacks are registered by calling the jer_pec#Register
 function:
 
-jer_chc#Register({callback}, {data}, {cascade},               *jer_chc#Register*
+jer_pec#Register({callback}, {data}, {cascade},               *jer_pec#Register*
                  {priority}, {permanent},
                  {inCmdWin}, {global})
 
-    {callback} is the function to run on the CursorHold event, and it must be
+    {callback} is the function to run on the Post-Event event, and it must be
 a funcref. {data} is the arguments to pass to {callback}, and it must be a
 list.
 
@@ -189,21 +199,32 @@ list.
 callback.  This effect cascades to side effects of those autocommands and so
 on. Callbacks with lower {priority} value go first.
 
-    The callback will only called once, on the next CursorHold event, unless
+    The callback will only called once, on the next Post-Event event, unless
 {permanent} is true. In that case, {callback} will be called for every
-CursorHold event from now on.
+Post-Event event from now on.
 
     Callbacks with a falsey {inCmdWin} flag will not run while the
 command-line window is open.
 
     If {global} is truthy, {callback} will execute even if the user switches
-to another tab before the next CursorHold event. Otherwise, the callback will
-run on the next CursorHold event that triggers in the current tab
+to another tab before the next Post-Event event. Otherwise, the callback will
+run on the next Post-Event event that triggers in the current tab
 
-    Since the CursorHold autocmd event doesn't fire in active terminal
-windows (i.e. terminal windows that are in terminal-job mode), the CursorHold
+    Since the Post-Event autocmd event doesn't fire in active terminal
+windows (i.e. terminal windows that are in terminal-job mode), the Post-Event
 callbacks also run whenever the cursor enters an active terminal window.
 Specifically, the TerminalOpen and WinEnter events are used for this.
+
+                                        *g:jersuite_forcecursorholdforpostevent*
+    If desired, the user can set g:jersuite_forcecursorholdforpostevent to true
+to force this facility to use the CursorHold autocmd event for post-event
+callbacks, even if the SafeState autocmd event is supported by Vim
+
+    If the SafeState event is being used, then the post-event callbacks may run
+to excess when the user holds down a key. This is mitigated by checking for
+pending keys (using getchar(1)) after all the callbacks run. If there are
+pending keys, then callback execution is skipped for all SafeState events until
+a CursorHold event fires
 
 ------------------------------------------------------------------------------
 

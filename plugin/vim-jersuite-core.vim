@@ -10,7 +10,7 @@ endif
 let s:loaded = 0
 
 " vim-jersuite-core itself has no dependencies
-let g:jersuite_core_version = '1.1.3'
+let g:jersuite_core_version = '1.2.0'
 
 call jer_log#SetLevel('jersuite', 'CFG', 'WRN')
 call jer_log#LogFunctions('jersuite').CFG('jersuite_core version ',
@@ -19,7 +19,7 @@ call jer_log#LogFunctions('jersuite').CFG('jersuite_core version ',
 " Command that generically checks a plugin dependency and aborts with an error
 " message if it's not installed or its version is outside a range. This is a
 " command instead of a function 
-command! -nargs=+ JerCheckDep if !jer_util#CheckDep(<f-args>) | exit | endif
+command! -nargs=+ JerCheckDep if !jer_util#CheckDep(<f-args>) | quitall | endif
 
 " Command to open the buflog
 command! -nargs=0 -complete=command JerLog buffer jersuite_buflog

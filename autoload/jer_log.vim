@@ -169,10 +169,15 @@ function! jer_log#LogFunctions(facility)
     return funcs
 endfunction
 
-" Try to flush the queue on every CursorHold event
+" Try to flush the queue on every SafeState event. If SafeState isn't
+" supported, use CursorHold instead
 augroup JersuiteLog
     autocmd!
-    autocmd CursorHold * call s:MaybeFlushQueue()
+    if exists('##SafeState')
+        autocmd SafeState * call s:MaybeFlushQueue()
+    else
+        autocmd CursorHold * call s:MaybeFlushQueue()
+    endif
 augroup END
 
 " Process arguments from JerLogSet command
