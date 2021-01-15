@@ -10,7 +10,7 @@ endif
 let s:loaded = 0
 
 " vim-jersuite-core itself has no dependencies
-let g:jersuite_core_version = '1.2.0'
+let g:jersuite_core_version = '1.2.1'
 
 call jer_log#SetLevel('jersuite', 'CFG', 'WRN')
 call jer_log#LogFunctions('jersuite').CFG('jersuite_core version ',
@@ -39,6 +39,10 @@ noremap <silent> <expr> <plug>JerDetectMode
       \ '<c-w>:<c-u>call jer_mode#Detect("' . mode() . '")<cr>'
 tnoremap <silent> <expr> <plug>JerDetectMode
       \ '<c-w>:<c-u>call jer_mode#Detect("' . mode() . '")<cr>'
+
+" Runs the Jersuite Post-Event Callback Timeout Calibration Tool
+command! -nargs=0 -complete=command JerPecTool
+       \ call jer_pec#StartCalibrateTimeout()
 
 " Just like windo, but restore the current window when done
 command! -nargs=+ -count=0 -complete=command JerWindo

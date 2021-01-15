@@ -1,4 +1,4 @@
-doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2021 January 12
+doc/vim-jersuite-core.txt       For Vim 7.3+      Last change: 2021 January 15
 
 Author:               Jeremy Lerner <github.com/jeremy-quicklearner>
 License:              MIT
@@ -165,8 +165,16 @@ SafeState autocmd (added in Vim 8.2) deftly fills this need, but Jersuite
 plugins need to be backwards-compatible with Vim versions older than 8.2. For
 those versions, the CursorHold autocmd event is the next best thing. For the
 rest of this section, The terms "Post-event autocmd event" and "Post-event
-event " will be used to refer to the relevant autocmd event - SafeState for
+event" will be used to refer to the relevant autocmd event - SafeState for
 Vim 8.2+, CursorHold for earlier versions.
+
+                                        *g:jersuite_forcecursorholdforpostevent*
+    If desired, the user can set g:jersuite_forcecursorholdforpostevent to true
+to force this facility to use the CursorHold autocmd event, even if the
+SafeState autocmd event is supported by Vim
+
+Note: Using the SafeState event is currently experimental behaviour, so
+      g:jersuite_forcecursorholdforpostevent is on by default
 
     Different plugins may want to add autocmds that trigger on the Post-Event
 event, but ensure that those autocmds run in a certain order. However, Vim's
@@ -183,6 +191,30 @@ is registered with a priority value so that plugins can control the order in
 which the callbacks execute. Since only one autocmd (the one that runs the
 callbacks) gets registered for this autocmd event, Vim has no say about the
 ordering.
+
+    Since the Post-Event autocmd event doesn't fire in active terminal
+windows (i.e. terminal windows that are in terminal-job mode), the Post-Event
+callbacks also run whenever the cursor enters an active terminal window.
+Specifically, the TerminalOpen and WinEnter events are used for this.
+
+                                                  *g:jersuite_safestate_timeout*
+    If the SafeState event is being used, then the post-event callbacks may
+run too often when the user holds down a key and fires lots of SafeState
+events.  This is mitigated by checking for pending keys (using getchar(1))
+before and after all the callbacks run. If either check finds keys pending,
+then callback execution is deferred until the next CursorHold event runs. The
+first check (before the callbacks) involves a short wait period with length
+set by the value of g:jersuite_safestate_timeout in milliseconds.
+
+                                                                    *JerPecTool*
+    The user command `JerPecTool` guides the user through a calibration
+process that recommends a g:jersuite_safestate_timeout value based on their
+environment
+
+    A small value for the 'updatetime' option (like 100) is recommended for
+any Vim environment using Jersuite plugins - so that the callbacks run quickly
+on CursorHold. This recommendation applies even when SafeState is being used,
+since callbacks can be deferred until CursorHold anyway
 
     Post-Event callbacks are registered by calling the jer_pec#Register
 function:
@@ -209,22 +241,6 @@ command-line window is open.
     If {global} is truthy, {callback} will execute even if the user switches
 to another tab before the next Post-Event event. Otherwise, the callback will
 run on the next Post-Event event that triggers in the current tab
-
-    Since the Post-Event autocmd event doesn't fire in active terminal
-windows (i.e. terminal windows that are in terminal-job mode), the Post-Event
-callbacks also run whenever the cursor enters an active terminal window.
-Specifically, the TerminalOpen and WinEnter events are used for this.
-
-                                        *g:jersuite_forcecursorholdforpostevent*
-    If desired, the user can set g:jersuite_forcecursorholdforpostevent to true
-to force this facility to use the CursorHold autocmd event for post-event
-callbacks, even if the SafeState autocmd event is supported by Vim
-
-    If the SafeState event is being used, then the post-event callbacks may run
-to excess when the user holds down a key. This is mitigated by checking for
-pending keys (using getchar(1)) after all the callbacks run. If there are
-pending keys, then callback execution is skipped for all SafeState events until
-a CursorHold event fires
 
 ------------------------------------------------------------------------------
 
