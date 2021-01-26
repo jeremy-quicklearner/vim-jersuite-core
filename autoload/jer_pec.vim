@@ -12,13 +12,19 @@ let s:loaded = 0
 call jer_log#SetLevel('post-event-callback', 'CFG', 'WRN')
 let s:Log = jer_log#LogFunctions('post-event-callback')
 
+try
+    sleep! 1m
+    let s:sleepbangexists = 1
+catch /No ! allowed/
+    let s:sleepbangexists = 0
+endtry
+
 " If this flag is switched on, jer_pec will run post-event callbacks on the
 " CursorHold autocmd event instead of the SafeState autocmd event, even if the
 " SafeState autocmd event exists. 
-" On by default. Running post-event callbacks on SafeState is currently
-" experimental behaviour.
+" Defaults to on if ':sleep!' is supported, off otherwise.
 if !exists('g:jersuite_forcecursorholdforpostevent')
-    let g:jersuite_forcecursorholdforpostevent = 1
+    let g:jersuite_forcecursorholdforpostevent = s:sleepbangexists
 endif
 
 " Maximum time interval (in milliseconds) between two SafeState events such that
@@ -195,23 +201,39 @@ function! jer_pec#Run()
     let t:jersuite_postEventCallbacks = newCallbacks
 endfunction
 
+" Don't run callbacks if the calibration tool is running
 let s:calibrating = 0
+
+" Hide cursor during sleep if we're exiting command-line mode or updating the
+" searchcount, which would draw the cursor in weird places
+let s:prevmode = 'n'
+let s:prevsc = 0
 let s:deferToCursorHold = 0
 function! s:OnSafeState()
+    let curmode = mode()
+    let curscdict = searchcount()
+    let cursc = curscdict.current + curscdict.total
+
     " If the calibration tool is running, do nothing
     if s:calibrating
+        let s:prevmode = curmode
+        let s:prevsc = cursc
         return
     endif
 
     " If the last event was CursorHold, don't do anything for SafeState
     if s:lasteventwascursorhold
         let s:lasteventwascursorhold = 0
+        let s:prevmode = curmode
+        let s:prevsc = cursc
         return
     endif
 
     " If the callbacks are being deferred, don't run them on SafeState.
     " Eventually CursorHold will fire, run them, and stop deferring.
     if s:deferToCursorHold || g:jersuite_forcecursorholdforpostevent
+        let s:prevmode = curmode
+        let s:prevsc = cursc
         return
     endif
 
@@ -223,9 +245,11 @@ function! s:OnSafeState()
     " - A callback is being invoked
     " - We're not in normal mode
     " - A Macro is being recorded
-    if state('moawc') !=# '' ||
-   \   mode() !=# 'n' ||
+    if state('moawcs') !=# '' ||
+   \   curmode !=# 'n' ||
    \   reg_recording() !=# ''
+        let s:prevmode = curmode
+        let s:prevsc = cursc
         return
     endif
     
@@ -242,11 +266,27 @@ function! s:OnSafeState()
 
     " Why not just defer until the next SafeState event? Because then this
     " sleep would cause visual stutters
-    execute 'sleep ' . g:jersuite_safestate_timeout . 'm'
+    if s:sleepbangexists && (s:prevmode ==# 'c' || cursc !=# s:prevsc)
+        " Hide the cursor if leaving command-line editing or searchcount() has
+        " changed. Showing the cursor in these contexts would draw it in a
+        " weird place.
+        " Since the cursor can only be hidden during sleep if the ':sleep!'
+        " command is in the running version of Vim, only try to hide it if
+        " ':sleep!' exists.
+        " Note: This specific code path is the motivation for adding the
+        " ':sleep!' command to Vim
+        " See: github.com/vim/vim/pull/7688
+        "      github.com/vim/vim/commit/e2edc2
+        execute 'sleep! ' . g:jersuite_safestate_timeout . 'm'
+    else
+        execute 'sleep ' . g:jersuite_safestate_timeout . 'm'
+    endif
 
     if getchar(1) !=# 0
         call s:Log.INF('Callbacks deferred before running due to pending input')
         let s:deferToCursorHold = 1
+        let s:prevmode = curmode
+        let s:prevsc = cursc
         return
     endif
 
@@ -259,6 +299,8 @@ function! s:OnSafeState()
         call s:Log.INF('Callbacks deferred after running due to pending input')
         let s:deferToCursorHold = 1
     endif
+    let s:prevmode = curmode
+    let s:prevsc = cursc
 endfunction
 
 let s:lasteventwascursorhold = 0

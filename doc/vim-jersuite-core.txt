@@ -173,8 +173,12 @@ Vim 8.2+, CursorHold for earlier versions.
 to force this facility to use the CursorHold autocmd event, even if the
 SafeState autocmd event is supported by Vim
 
-Note: Using the SafeState event is currently experimental behaviour, so
-      g:jersuite_forcecursorholdforpostevent is on by default
+    g:jersuite_forcecursorholdforpostevent is on by default in versions of
+Vim without the `:sleep!` command, which is required for a smooth user
+experience.
+
+Fun fact: This specific use of `:sleep!` is the motivation for adding the
+          command to Vim. See Patch 8.2.2366
 
     Different plugins may want to add autocmds that trigger on the Post-Event
 event, but ensure that those autocmds run in a certain order. However, Vim's
