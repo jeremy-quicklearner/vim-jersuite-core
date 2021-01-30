@@ -155,6 +155,10 @@ logging:
 Note that these logging functions are variadic. What gets logged is the result
 of concatenating the arguments with join().
 
+                                                               *jer_log#History*
+    The jer_log#SetLevel function may be used to get a list of all messages in
+the buffer log, not including messages that were cleared with `JerLogClear`
+
 ------------------------------------------------------------------------------
 
 3.2. Post-Event Callbacks                           *jer_pec* *jersuite-postevent*

@@ -10,7 +10,7 @@ endif
 let s:loaded = 0
 
 " vim-jersuite-core itself has no dependencies
-let g:jersuite_core_version = '1.2.2'
+let g:jersuite_core_version = '1.2.3'
 
 call jer_log#SetLevel('jersuite', 'CFG', 'WRN')
 call jer_log#LogFunctions('jersuite').CFG('jersuite_core version ',

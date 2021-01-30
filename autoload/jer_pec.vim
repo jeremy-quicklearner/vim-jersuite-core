@@ -351,6 +351,9 @@ augroup JersuitePEC
 
     if exists('##SafeState')
         autocmd SafeState * nested call s:OnSafeState()
+        " You'd think SafeState already gets called after :grep and :lgrep but
+        " nooooooooo
+        autocmd QuickFixCmdPost * nested call s:OnSafeState()
     endif
     autocmd CursorHold * nested call s:OnCursorHold()
 
