@@ -212,7 +212,11 @@ let s:deferToCursorHold = 0
 function! s:OnSafeState()
     let curmode = mode()
     let curscdict = searchcount()
-    let cursc = curscdict.current + curscdict.total
+    if !empty(curscdict)
+        let cursc = curscdict.current + curscdict.total
+    else
+       let cursc = 0
+    endif
 
     " If the calibration tool is running, do nothing
     if s:calibrating
