@@ -123,13 +123,14 @@ function! jer_log#SetLevel(facility, bufloglevel, msgloglevel)
 endfunction
 
 function! jer_log#Clear()
+    let s:buflog_queue = []
     if !s:buflog_lines
         return
     endif
     for linenr in range(s:buflog_lines + 1)
         silent call setbufline(s:buflog, linenr, '')
     endfor
-    silent call setbufline(s:buflog, 1, '[INF][jersuite_log] Buffer log cleared')
+    silent call setbufline(s:buflog, 1, '[INF][jersuite_log] Log start')
     let s:buflog_lines = 1
 endfunction
 
@@ -167,6 +168,16 @@ function! jer_log#LogFunctions(facility)
        \    eval('{... -> call(Fn, [a:facility, ' . level . '] + a:000)}')
     endfor
     return funcs
+endfunction
+
+" Function to read the log
+function! jer_log#History()
+    let history = []
+    " Start at line 2 to skip the 'Log start' message, which
+    " are absent if everything is stuck in the queue
+    let history += getbufline('jersuite_buflog', 2, s:buflog_lines)
+    let history += s:buflog_queue
+    return history[1:]
 endfunction
 
 " Try to flush the queue on every SafeState event. If SafeState isn't

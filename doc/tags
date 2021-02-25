@@ -11,6 +11,7 @@ g:jersuite_forcecursorholdforpostevent	vim-jersuite-core.txt	/*g:jersuite_forcec
 g:jersuite_forcelegacywinid	vim-jersuite-core.txt	/*g:jersuite_forcelegacywinid*
 g:jersuite_safestate_timeout	vim-jersuite-core.txt	/*g:jersuite_safestate_timeout*
 jer_log	vim-jersuite-core.txt	/*jer_log*
+jer_log#History	vim-jersuite-core.txt	/*jer_log#History*
 jer_log#Log	vim-jersuite-core.txt	/*jer_log#Log*
 jer_log#LogFunctions	vim-jersuite-core.txt	/*jer_log#LogFunctions*
 jer_log#SetLevel	vim-jersuite-core.txt	/*jer_log#SetLevel*

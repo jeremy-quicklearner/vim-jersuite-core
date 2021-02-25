@@ -212,7 +212,11 @@ let s:deferToCursorHold = 0
 function! s:OnSafeState()
     let curmode = mode()
     let curscdict = searchcount()
-    let cursc = curscdict.current + curscdict.total
+    if !empty(curscdict)
+        let cursc = curscdict.current + curscdict.total
+    else
+       let cursc = 0
+    endif
 
     " If the calibration tool is running, do nothing
     if s:calibrating
@@ -351,6 +355,9 @@ augroup JersuitePEC
 
     if exists('##SafeState')
         autocmd SafeState * nested call s:OnSafeState()
+        " You'd think SafeState already gets called after :grep and :lgrep but
+        " nooooooooo
+        autocmd QuickFixCmdPost * nested call s:OnSafeState()
     endif
     autocmd CursorHold * nested call s:OnCursorHold()
 
