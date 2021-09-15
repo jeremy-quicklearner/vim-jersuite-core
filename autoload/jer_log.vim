@@ -82,7 +82,15 @@ let s:loglevel_data = [
 \   {'code':'DBG','hl':'Normal'    },
 \   {'code':'VRB','hl':'Normal'    }
 \]
-let s:loglevel_codes = map(copy(s:loglevel_data), {i, f -> f['code']})
+if has('lambda')
+    let s:loglevel_codes = map(copy(s:loglevel_data), {i, f -> f['code']})
+else
+    let s:loglevel_codes = []
+    for adict in s:loglevel_data
+        call add(s:loglevel_codes, adict['code'])
+    endfor
+endif
+
 let g:jersuite_loglevels = {}
 function! jer_log#SetLevel(facility, bufloglevel, msgloglevel)
     if a:bufloglevel && index(g:jersuite_loglevel_codes, a:bufloglevel) ==# -1
@@ -164,8 +172,22 @@ function! jer_log#LogFunctions(facility)
     let Fn = function('jer_log#Log')
     let funcs = {}
     for level in range(0,len(s:loglevel_data) - 1)
-        let funcs[s:loglevel_codes[level]] =
-       \    eval('{... -> call(Fn, [a:facility, ' . level . '] + a:000)}')
+        if has('lambda')
+            let funcs[s:loglevel_codes[level]] =
+           \    eval('{... -> call(Fn, [a:facility, ' . level . '] + a:000)}')
+        else
+            let nlname = 's:NLLOG_' .
+          \     substitute(a:facility, '-', '_', 'g') .
+          \     '_' . level
+            execute "function! " . nlname . "(...) \n".
+           \        "call call('jer_log#Log', ['" .
+           \        a:facility .
+           \        "', '" .
+           \        level .
+           \        "'] + a:000) \n" .
+           \        "endfunction"
+            let funcs[s:loglevel_codes[level]] = function(nlname)
+        endif
     endfor
     return funcs
 endfunction
@@ -184,7 +206,7 @@ endfunction
 " supported, use CursorHold instead
 augroup JersuiteLog
     autocmd!
-    if exists('##SafeState')
+    if exists('##SafeStateAgain') && exists('*state')
         autocmd SafeState * call s:MaybeFlushQueue()
     else
         autocmd CursorHold * call s:MaybeFlushQueue()

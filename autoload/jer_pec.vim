@@ -11,6 +11,7 @@ let s:loaded = 0
 
 call jer_log#SetLevel('post-event-callback', 'CFG', 'WRN')
 let s:Log = jer_log#LogFunctions('post-event-callback')
+let s:t = jer_util#Types()
 
 try
     sleep! 1m
@@ -24,7 +25,7 @@ endtry
 " SafeState autocmd event exists. 
 " Defaults to on if ':sleep!' is supported, off otherwise.
 if !exists('g:jersuite_forcecursorholdforpostevent')
-    let g:jersuite_forcecursorholdforpostevent = s:sleepbangexists
+    let g:jersuite_forcecursorholdforpostevent = !s:sleepbangexists
 endif
 
 " Maximum time interval (in milliseconds) between two SafeState events such that
@@ -41,10 +42,11 @@ endif
 let s:callbacksRunning = 0
 
 " Self-explanatory
-if getcmdwintype()
-    let s:inCmdWin = 1
+let s:inCmdWin = 0
+if exists('*getcmdwintype')
+    let s:inCmdWin = getcmdwintype()
 else
-    let s:inCmdWin = 0
+    let s:inCmdWin = (bufname('%') ==# '[Command Line]')
 endif
 
 " Self-explanatory
@@ -74,45 +76,45 @@ endfunction
 function! jer_pec#Register(callback, data,
          \                 cascade, priority, permanent,
          \                 inCmdWin, global)
-    if type(a:callback) != v:t_func
+    if type(a:callback) != s:t.func
         throw 'Post-Event Callback ' . string(a:callback) . ' is not a function'
     endif
-    if type(a:data) != v:t_list
+    if type(a:data) != s:t.list
         throw 'Data ' .
        \      string(a:data) .
        \      ' for Post-Event Callback ' .
        \      string(a:callback) .
        \      'is not a list'
     endif
-    if type(a:cascade) != v:t_number
+    if type(a:cascade) != s:t.number
         throw 'Cascade flag ' .
        \      string(a:cascade) .
        \      ' for Post-Event Callback ' .
        \      string(a:callback) .
        \      'is not a number'
     endif
-    if type(a:priority) != v:t_number
+    if type(a:priority) != s:t.number
         throw 'Priority ' .
        \      string(a:priority) .
        \      ' for Post-Event Callback ' .
        \      string(a:callback) .
        \      'is not a number'
     endif
-    if type(a:permanent) != v:t_number
+    if type(a:permanent) != s:t.number
         throw 'Permanent flag ' .
        \      string(a:permanent) .
        \      ' for Post-Event Callback ' .
        \      string(a:callback) .
        \      'is not a number'
     endif
-    if type(a:inCmdWin) != v:t_number
+    if type(a:inCmdWin) != s:t.number
         throw 'Even-in-command-window flag ' .
        \      string(a:inCmdWin) .
        \      ' for Post-Event Callback ' .
        \      string(a:callback) .
        \      'is not a number'
     endif
-    if type(a:global) != v:t_number
+    if type(a:global) != s:t.number
         throw 'Global flag ' .
        \      string(a:global) .
        \      ' for Post-Event Callback ' .
@@ -154,6 +156,11 @@ function! jer_pec#Register(callback, data,
     endif
 endfunction
 
+function! s:Compare(c1, c2)
+    return a:c1.priority - a:c2.priority
+endfunction
+let s:compfun = function('s:Compare')
+
 " Run the registered callbacks
 " This function is only called from here, but I'm keeping it available
 " elsewhere so that it can be tested by other scripts
@@ -165,7 +172,7 @@ function! jer_pec#Run()
     let callbacks = g:jersuite_postEventCallbacks +
                   \ t:jersuite_postEventCallbacks
 
-    call sort(callbacks, {c1, c2 -> c1.priority - c2.priority})
+    call sort(callbacks, s:compfun)
     for callback in callbacks
         if s:inCmdWin && !callback.inCmdWin
             continue
@@ -211,11 +218,11 @@ let s:prevsc = 0
 let s:deferToCursorHold = 0
 function! s:OnSafeState()
     let curmode = mode()
-    let curscdict = searchcount()
-    if !empty(curscdict)
-        let cursc = curscdict.current + curscdict.total
+
+    if exists('searchcount')
+        let cursc = searchcount()
     else
-       let cursc = 0
+        let cursc = 0
     endif
 
     " If the calibration tool is running, do nothing
@@ -270,20 +277,22 @@ function! s:OnSafeState()
 
     " Why not just defer until the next SafeState event? Because then this
     " sleep would cause visual stutters
-    if s:sleepbangexists && (s:prevmode ==# 'c' || cursc !=# s:prevsc)
-        " Hide the cursor if leaving command-line editing or searchcount() has
-        " changed. Showing the cursor in these contexts would draw it in a
-        " weird place.
-        " Since the cursor can only be hidden during sleep if the ':sleep!'
-        " command is in the running version of Vim, only try to hide it if
-        " ':sleep!' exists.
-        " Note: This specific code path is the motivation for adding the
-        " ':sleep!' command to Vim
-        " See: github.com/vim/vim/pull/7688
-        "      github.com/vim/vim/commit/e2edc2
-        execute 'sleep! ' . g:jersuite_safestate_timeout . 'm'
-    else
-        execute 'sleep ' . g:jersuite_safestate_timeout . 'm'
+    if g:jersuite_safestate_timeout
+        if s:sleepbangexists && (s:prevmode ==# 'c' || cursc !=# s:prevsc)
+            " Hide the cursor if leaving command-line editing or searchcount()
+            " has changed. Showing the cursor in these contexts would draw it in
+            " a weird place.
+            " Since the cursor can only be hidden during sleep if the ':sleep!'
+            " command is in the running version of Vim, only try to hide it if
+            " ':sleep!' exists.
+            " Note: This specific code path is the motivation for adding the
+            " ':sleep!' command to Vim
+            " See: github.com/vim/vim/pull/7688
+            "      github.com/vim/vim/commit/e2edc2
+            execute 'sleep! ' . g:jersuite_safestate_timeout . 'm'
+        else
+            execute 'sleep ' . g:jersuite_safestate_timeout . 'm'
+        endif
     endif
 
     if getchar(1) !=# 0
@@ -320,7 +329,8 @@ function! s:OnCursorHold()
 
     " If there's no SafeState autocmd event, then the post-event callbacks
     " just run on CursorHold. So run them
-    if !exists('##SafeState') || g:jersuite_forcecursorholdforpostevent
+    if !exists('##SafeStateAgain') || !exists('*state') ||
+   \   g:jersuite_forcecursorholdforpostevent
         call jer_pec#Run()
         return
     endif
@@ -353,7 +363,7 @@ augroup JersuitePEC
     autocmd CmdWinEnter * let s:inCmdWin = 1
     autocmd CmdWinLeave * let s:inCmdWin = 0
 
-    if exists('##SafeState')
+    if exists('##SafeStateAgain') && exists('*state')
         autocmd SafeState * nested call s:OnSafeState()
         " You'd think SafeState already gets called after :grep and :lgrep but
         " nooooooooo
@@ -363,7 +373,13 @@ augroup JersuitePEC
 
     " The Post-Event autocmd doesn't run in active terminal windows, so
     " force-run them whenever the cursor enters a terminal window
-    autocmd TerminalOpen,WinEnter * nested call s:HandleTerminalEnter()
+    if exists('##TerminalWinOpen')
+        autocmd TerminalWinOpen,WinEnter * nested call s:HandleTerminalEnter()
+    elseif exists('##TerminalOpen')
+        autocmd TerminalOpen,WinEnter * nested call s:HandleTerminalEnter()
+    elseif has('terminal')
+        autocmd WinEnter,BufWinEnter * nested call s:HandleTerminalEnter()
+    endif
 augroup END
 
 " SafeState timeout calibration tool

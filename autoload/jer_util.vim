@@ -58,6 +58,23 @@ function! jer_util#CheckDep(name, depname, depwhere, depminver, depmaxver)
     return 1
 endfunction
 
+" These values have been valid since at least Vim 7.0. It is the named
+" constants that were added in v8.0
+function! jer_util#Types()
+    return {
+    \   'number': 0,
+    \   'string': 1,
+    \   'func': 2,
+    \   'list': 3,
+    \   'dict': 4,
+    \   'float': 5,
+    \   'bool': 6,
+    \   'none': 7,
+    \   'job': 8,
+    \   'channel': 9,
+    \   'blob': 10
+    \}
+endfunction
 " Functions used by WinDo, BufDo, and TabDo
 function! jer_util#WinDo(range, command)
     let currwin=winnr()

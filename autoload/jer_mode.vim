@@ -11,6 +11,7 @@ let s:loaded = 0
 
 call jer_log#SetLevel('detect-mode', 'CFG', 'WRN')
 let s:Log = jer_log#LogFunctions('detect-mode')
+let s:t = jer_util#Types()
 
 let s:detectedmode = {'mode':'n'}
 function! jer_mode#Detect(mode)
@@ -77,7 +78,7 @@ function! jer_mode#Retrieve()
 endfunction
 function! jer_mode#ForcePreserve(mode)
     call s:Log.DBG('jer_mode#ForcePreserve ', a:mode)
-    if type(a:mode) != v:t_dict || !has_key(a:mode, 'mode')
+    if type(a:mode) != s:t.dict || !has_key(a:mode, 'mode')
         let s:detectedmode = {'mode':'n'}
     else
         let s:detectedmode = a:mode

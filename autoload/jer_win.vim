@@ -102,7 +102,7 @@ function! jer_win#gotoid(winid)
     execute winnr . 'wincmd w'
 endfunction
 
-function! s:Id2winInternal(winid)
+function! s:Id2WinInternal(winid)
     if a:winid ==# 0
         return 0
     elseif a:winid <# 1000 || a:winid ># s:maxwinid
@@ -129,7 +129,7 @@ function! jer_win#height(winid)
 endfunction
 
 function! jer_win#getwinvar(winid, ...)
-    return call('getwinvar', [s:Id2WinInternal(a:winid)] + a:000[1:])
+    return call('getwinvar', [s:Id2WinInternal(a:winid)] + a:000)
 endfunction
 
 function! jer_win#setwinvar(winid, varname, val)
@@ -137,7 +137,7 @@ function! jer_win#setwinvar(winid, varname, val)
 endfunction
 
 function! jer_win#setloclist(winid, list, ...)
-    return call('setloclist', s:Id2WinInternal(a:winid), a:list, a:000[2:])
+    return call('setloclist', [s:Id2WinInternal(a:winid), a:list] + a:000)
 endfunction
 
 if v:version >=# 800 && (!exists('g:jersuite_forcelegacywinid') ||
@@ -155,7 +155,6 @@ if v:version >=# 800 && (!exists('g:jersuite_forcelegacywinid') ||
    \    'setwinvar': function('setwinvar'),
    \    'setloclist': function('setloclist')
    \}
-
 else
     call s:Log.CFG('Legacy winids enabled')
     let s:funcrefs = {
@@ -166,11 +165,10 @@ else
    \    'bufnr': function('jer_win#bufnr'),
    \    'width': function('jer_win#width'),
    \    'height': function('jer_win#height'),
-   \    'getwinvar': function('jer_win#setwinvar'),
+   \    'getwinvar': function('jer_win#getwinvar'),
    \    'setwinvar': function('jer_win#setwinvar'),
    \    'setloclist': function('jer_win#setloclist')
    \}
-
 endif
 
 function! jer_win#WinFunctions()

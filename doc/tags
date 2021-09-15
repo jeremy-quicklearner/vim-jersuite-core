@@ -19,6 +19,7 @@ jer_mode	vim-jersuite-core.txt	/*jer_mode*
 jer_pec	vim-jersuite-core.txt	/*jer_pec*
 jer_pec#Register	vim-jersuite-core.txt	/*jer_pec#Register*
 jer_util	vim-jersuite-core.txt	/*jer_util*
+jer_util#Types	vim-jersuite-core.txt	/*jer_util#Types*
 jer_win	vim-jersuite-core.txt	/*jer_win*
 jer_win#WinFunctions	vim-jersuite-core.txt	/*jer_win#WinFunctions*
 jersuite	vim-jersuite-core.txt	/*jersuite*

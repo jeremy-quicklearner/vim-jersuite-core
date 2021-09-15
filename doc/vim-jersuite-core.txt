@@ -335,21 +335,25 @@ jer_win#WinFunctions() is autoloaded.
 
 3.5. Utilities                                          *jer_util* *jersuite-util*
 
-    This facility contains miscellaneous utility functions for Jersuite
-plugins:
+    This facility contains miscellaneous utility functions and commands for
+Jersuite plugins:
 
+                                                                *jer_util#Types*
+jer_util#Types() Retrieve a dict with members corresponding to v:t_number,
+                 v:t_string, etc. These native constants weren't added until
+                 Vim 8.0
                                                                       *JerWindo*
-`JerWindo` ..... Just like windo, but restore the current window when done
+`JerWindo` ....... Just like `windo`, but restore the current window when done
 
                                                                   *JerWindofast*
-`JerWindofast` . Just like Windo, but disable all autocommands for fast
-               processing
+`JerWindofast` ... Just like `JerWindo`, but disable all autocommands for fast
+                 processing
 
                                                                       *JerBufdo*
-`JerBufdo` ..... Just like bufdo, but restore the current buffer when done.
+`JerBufdo` ....... Just like `bufdo`, but restore the current buffer when done
 
                                                                       *JerTabdo*
-`JerTabdo` ..... Just like tabdo, but restore the current buffer when done.
+`JerTabdo` ....... Just like `tabdo`, but restore the current buffer when done
 
 ==============================================================================
 
