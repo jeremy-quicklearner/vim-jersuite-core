@@ -10,7 +10,7 @@ endif
 let s:loaded = 0
 
 " vim-jersuite-core itself has no dependencies
-let g:jersuite_core_version = '1.2.5'
+let g:jersuite_core_version = '1.2.6'
 
 call jer_log#SetLevel('jersuite', 'CFG', 'WRN')
 call jer_log#LogFunctions('jersuite').CFG('jersuite_core version ',
@@ -22,10 +22,10 @@ call jer_log#LogFunctions('jersuite').CFG('jersuite_core version ',
 command! -nargs=+ JerCheckDep if !jer_util#CheckDep(<f-args>) | quitall | endif
 
 " Command to open the buflog
-command! -nargs=0 -complete=command JerLog buffer jersuite_buflog
+command! -nargs=0 JerLog buffer jersuite_buflog
 
 " Command to clear the buflog
-command! -nargs=0 -complete=command JerLogClear call jer_log#Clear()
+command! -nargs=0 JerLogClear call jer_log#Clear()
 
 " Command to set buflog and msglog level for a facility
 " This command cannot *create* a logging facility. For that, jer_log#SetLevel
@@ -43,7 +43,7 @@ if exists(':tnoremap')
 endif
 
 " Runs the Jersuite Post-Event Callback Timeout Calibration Tool
-command! -nargs=0 -complete=command JerPecTool
+command! -nargs=0 JerPecTool
        \ call jer_pec#StartCalibrateTimeout()
 
 " Just like windo, but restore the current window when done
